@@ -1,8 +1,9 @@
 using MailKit.Net.Smtp;
-using MimeKit;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
+using MimeKit;
 
-namespace GreenswampRazorPages.Services;
+namespace GreenSwampApp.Services;
 
 public class EmailService : IEmailService
 {
@@ -27,19 +28,21 @@ public class EmailService : IEmailService
             var bodyBuilder = new BodyBuilder
             {
                 HtmlBody = @"
-                    <h1>Thanks for subscribing!</h1>
-                    <p>You've successfully hopped into the Greenswamp community. Stay tuned for ribbiting updates!</p>
-                    <p>🐸 Cheers,<br/>The Greenswamp Team</p>",
+                <h1>Thanks for subscribing!</h1>
+                <p>You've successfully hopped into the Greenswamp community. Stay tuned for ribbiting updates!</p>
+                <p>🐸 Cheers,<br/>The Greenswamp Team</p>",
                 TextBody = "Thanks for subscribing to Greenswamp! You'll receive updates about campus life."
             };
             message.Body = bodyBuilder.ToMessageBody();
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(_smtpSettings.Server, _smtpSettings.Port, MailKit.Security.SecureSocketOptions.StartTls);
+
+            await client.ConnectAsync(_smtpSettings.Server, _smtpSettings.Port, SecureSocketOptions.StartTls);
+
             await client.AuthenticateAsync(_smtpSettings.Username, _smtpSettings.Password);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
-            
+
             _logger.LogInformation("Subscription email sent to {Email}", toEmail);
         }
         catch (Exception ex)

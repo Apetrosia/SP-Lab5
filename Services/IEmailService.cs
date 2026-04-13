@@ -1,4 +1,4 @@
-namespace GreenswampRazorPages.Services;
+namespace GreenSwampApp.Services;
 
 public interface IEmailService
 {

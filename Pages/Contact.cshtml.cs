@@ -1,64 +1,76 @@
-using GreenswampRazorPages.Services;
+using GreenSwampApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 
-namespace GreenswampRazorPages.Pages;
-
-public class ContactModel : PageModel
+namespace GreenSwampApp.Pages
 {
-    private readonly ICsvService _csvService;
-
-    public ContactModel(ICsvService csvService)
+    public class ContactModel : PageModel
     {
-        _csvService = csvService;
-    }
+        private readonly ICsvExportService _csvExportService;
 
-    [BindProperty]
-    [Required(ErrorMessage = "Name is required")]
-    [StringLength(100, ErrorMessage = "Name too long")]
-    public string Name { get; set; }
-
-    [BindProperty]
-    [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid email format")]
-    [EduEmail(ErrorMessage = "Only .edu email addresses are allowed")]
-    public string Email { get; set; }
-
-    [BindProperty]
-    public string Topic { get; set; }
-
-    [BindProperty]
-    [Required(ErrorMessage = "Message cannot be empty")]
-    [StringLength(2000, ErrorMessage = "Message too long (max 2000 characters)")]
-    public string Message { get; set; }
-
-    public void OnGet()
-    {
-    }
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        if (!ModelState.IsValid)
+        public ContactModel(ICsvExportService csvExportService)
         {
-            return Page();
+            _csvExportService = csvExportService;
         }
 
-        await _csvService.AppendContactAsync(Name, Email, Topic, Message);
-        
-        TempData["ContactSuccess"] = "Your message has been sent! We'll hop back to you soon.";
-        return RedirectToPage();
-    }
-}
+        [BindProperty]
+        public ContactInputModel Input { get; set; } = new();
 
-public class EduEmailAttribute : ValidationAttribute
-{
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        public void OnGet()
+        {
+            // Инициализация при GET запросе
+        }
+
+        public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
+            try
+            {
+                Input.CreatedAt = DateTime.Now;
+
+                await _csvExportService.SaveContactMessageAsync(Input, cancellationToken);
+
+                TempData["Success"] = true;
+                TempData["ShowSuccessModal"] = true;
+                Input = new ContactInputModel();
+
+                return Page();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Произошла ошибка при сохранении сообщения. Пожалуйста, попробуйте позже.";
+                return Page();
+            }
+        }
+    }
+
+    public class ContactInputModel
     {
-        if (value == null) return ValidationResult.Success;
-        var email = value.ToString();
-        if (email.Contains("@") && email.Split('@')[1].EndsWith(".edu", StringComparison.OrdinalIgnoreCase))
-            return ValidationResult.Success;
-        return new ValidationResult(ErrorMessage ?? "Only .edu email addresses are allowed.");
+        [Required(ErrorMessage = "Поле 'Ваше имя' обязательно для заполнения")]
+        [Display(Name = "Your Name")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Поле 'Email' обязательно для заполнения")]
+        [EmailAddress(ErrorMessage = "Введите корректный email адрес")]
+        [Display(Name = "Your Email")]
+        [RegularExpression(@".+\.edu$", ErrorMessage = "Допустимы только email-адреса в домене .edu")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Поле 'Тема сообщения' обязательно для заполнения")]
+        [Display(Name = "Message Topic")]
+        public string Topic { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Поле 'Сообщение' обязательно для заполнения")]
+        [MinLength(10, ErrorMessage = "Сообщение должно содержать минимум 10 символов")]
+        [Display(Name = "Your Message")]
+        public string Message { get; set; } = string.Empty;
+
+        [Display(Name = "Created At")]
+        public DateTime CreatedAt { get; set; }
     }
 }
