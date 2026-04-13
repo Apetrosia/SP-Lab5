@@ -24,6 +24,26 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.UseStatusCodePagesWithRedirects("/NotFound");
+
+app.MapControllerRoute(
+    name: "profile",
+    pattern: "profile/{username}",
+    defaults: new { controller = "Profile", action = "Index" });
+
+app.MapControllerRoute(
+    name: "postDetail",
+    pattern: "feed/post/{postId}",
+    defaults: new { controller = "Feed", action = "PostDetail" });
+
+app.MapControllerRoute(
+    name: "ponds",
+    pattern: "ponds/{tag}",
+    defaults: new { controller = "Ponds", action = "Index" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Feed}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 
 app.Run();

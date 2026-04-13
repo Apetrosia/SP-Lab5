@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace GreenswampRazorPages.Pages
+namespace GreenSwampApp.Pages
 {
     public class AboutModel : PageModel
     {

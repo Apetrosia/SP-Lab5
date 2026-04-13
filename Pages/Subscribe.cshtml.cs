@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 
-namespace GreenswampRazorPages.Pages;
+namespace GreenSwampApp.Pages;
 
 public class SubscribeModel : PageModel
 {
