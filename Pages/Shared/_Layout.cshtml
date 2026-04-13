@@ -3,50 +3,143 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SP_Lab5</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - Greenswamp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        swamp: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        #mobile-menu {
+            transition: all 0.3s ease-out;
+            transform-origin: top;
+        }
+        #mobile-menu.hidden {
+            opacity: 0;
+            transform: scaleY(0);
+        }
+        #mobile-menu.block {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+    </style>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SP_Lab5.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">SP_Lab5</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+<body class="bg-swamp-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a asp-page="/Index" class="flex items-center space-x-2">
+                    <img src="~/images/green-toad-logo.svg" alt="Greenswamp Logo" class="h-8 w-8">
+                    <span class="text-2xl font-bold text-swamp-600">Greenswamp</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8">
+                    <a asp-page="/Index" class="my-auto text-swamp-600 hover:text-swamp-800 font-medium">Home</a>
+                    <a asp-page="/About" class="my-auto text-swamp-600 hover:text-swamp-800 font-medium">About</a>
+                    <a asp-page="/Contact" class="my-auto text-swamp-600 hover:text-swamp-800 font-medium">Contact</a>
+                    <a asp-page="/Privacy" class="my-auto text-swamp-600 hover:text-swamp-800 font-medium">Privacy</a>
+                    <a asp-page="/Tos" class="my-auto text-swamp-600 hover:text-swamp-800 font-medium">Terms</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-swamp-600 hover:text-swamp-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute w-full bg-white shadow-lg">
+            <div class="px-4 py-2 space-y-4">
+                <a asp-page="/Index" class="block text-swamp-600 hover:text-swamp-800 font-medium">Home</a>
+                <a asp-page="/About" class="block text-swamp-600 hover:text-swamp-800 font-medium">About</a>
+                <a asp-page="/Contact" class="block text-swamp-600 hover:text-swamp-800 font-medium">Contact</a>
+                <a asp-page="/Privacy" class="block text-swamp-600 hover:text-swamp-800 font-medium">Privacy</a>
+                <a asp-page="/Tos" class="block text-swamp-600 hover:text-swamp-800 font-medium">Terms</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+<footer class="bg-swamp-900 text-white">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <img src="~/images/green-toad-logo.svg" alt="Greenswamp Logo" class="h-8 w-8">
+                    <span class="text-xl font-bold">Greenswamp</span>
+                </div>
+                <p class="mt-4 text-sm text-swamp-300">
+                    Connecting people one ribbit at a time.
+                </p>
+            </div>
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-sm font-semibold">Company</h4>
+                    <ul class="mt-4 space-y-2 text-sm">
+                        <li><a asp-page="/About" class="text-swamp-300 hover:text-white">About</a></li>
+                        <li><a asp-page="/Contact" class="text-swamp-300 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold">Legal</h4>
+                    <ul class="mt-4 space-y-2 text-sm">
+                        <li><a asp-page="/Privacy" class="text-swamp-300 hover:text-white">Privacy</a></li>
+                        <li><a asp-page="/Tos" class="text-swamp-300 hover:text-white">Terms</a></li>
                     </ul>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - SP_Lab5 - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            <div>
+                <h4 class="text-sm font-semibold">Stay Updated</h4>
+                <form method="post" asp-page="/Subscribe" class="mt-4 flex">
+                    <input type="email" name="Email" placeholder="Enter your email" required
+                           class="px-4 py-2 rounded-l-full flex-1 text-swamp-900 border border-swamp-200 focus:ring-2 focus:ring-swamp-400 focus:border-transparent">
+                    <button type="submit" class="bg-swamp-500 px-6 py-2 rounded-r-full hover:bg-swamp-600 transition-colors text-white">
+                        Subscribe
+                    </button>
+                </form>
+                @if (TempData["SubscribeSuccess"] != null)
+                {
+                    <p class="text-green-300 text-sm mt-2">@TempData["SubscribeSuccess"]</p>
+                }
+                @if (TempData["SubscribeError"] != null)
+                {
+                    <p class="text-red-300 text-sm mt-2">@TempData["SubscribeError"]</p>
+                }
+            </div>
         </div>
-    </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
+</footer>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
