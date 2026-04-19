@@ -30,6 +30,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.EnsureCreated();
+    SeedData.Initialize(dbContext);
 }
 
 if (!app.Environment.IsDevelopment())
