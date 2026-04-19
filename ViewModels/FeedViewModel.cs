@@ -35,11 +35,15 @@ namespace GreenSwampApp.ViewModels
     {
         public long EventId { get; set; }
         public long PostId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string TimeAgo { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string Location { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
+        public string MediaUrl { get; set; }
+        public string MediaType { get; set; }
         public UserViewModel Host { get; set; }
     }
 

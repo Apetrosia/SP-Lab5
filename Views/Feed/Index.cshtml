@@ -127,11 +127,31 @@
                                     </svg>
                                 </div>
                                 <div class="flex-1">
-                                    <h4 class="font-semibold text-swamp-900">@item.Event.Title</h4>
+                                    <div class="flex items-center space-x-2">
+                                        <h4 class="font-semibold text-swamp-900">@item.Event.Title</h4>
+                                        <span class="text-swamp-500">·</span>
+                                        <span class="text-sm text-swamp-500">@item.Event.TimeAgo</span>
+                                    </div>
                                     <p class="mt-2 text-swamp-700">
                                         @item.Event.Description
                                         <span class="block text-sm mt-1 text-swamp-500">Hosted by @@@item.Event.Host.Username</span>
                                     </p>
+                                    @if (!string.IsNullOrEmpty(item.Event.MediaUrl))
+                                    {
+                                        <div class="mt-4 rounded-lg overflow-hidden">
+                                            @if (item.Event.MediaType == "video")
+                                            {
+                                                <video class="w-full aspect-video object-cover bg-slate-900" controls>
+                                                    <source src="@item.Event.MediaUrl" type="video/mp4">
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                            }
+                                            else
+                                            {
+                                                <img src="@item.Event.MediaUrl" alt="Event media" class="w-full object-cover rounded-lg" />
+                                            }
+                                        </div>
+                                    }
                                     <div class="mt-4 flex items-center space-x-4">
                                         <button class="bg-swamp-500 text-white px-4 py-2 rounded-full text-sm hover:bg-swamp-600">
                                             RSVP

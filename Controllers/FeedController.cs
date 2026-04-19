@@ -19,7 +19,7 @@ namespace GreenSwampApp.Controllers
         {
             var feedItems = new List<FeedItemViewModel>();
 
-            // Get posts with their interactions and tags
+            // Get regular posts with interactions and tags
             var posts = await _context.Posts
                 .Include(p => p.User)
                 .Include(p => p.Interactions)
@@ -27,7 +27,6 @@ namespace GreenSwampApp.Controllers
                     .ThenInclude(pt => pt.Tag)
                 .Where(p => p.Event == null) // Exclude posts that are events (events have their own display)
                 .OrderByDescending(p => p.CreatedAt)
-                .Take(20)
                 .ToListAsync();
 
             foreach (var post in posts)
@@ -40,13 +39,12 @@ namespace GreenSwampApp.Controllers
                 });
             }
 
-            // Get events with their associated posts
+            // Get events and include their source post because feed sorting should use post.created_at
             var events = await _context.Events
                 .Include(e => e.Post)
                     .ThenInclude(p => p.User)
                 .Include(e => e.User)
-                .OrderByDescending(e => e.CreatedAt)
-                .Take(10)
+                .OrderByDescending(e => e.Post.CreatedAt)
                 .ToListAsync();
 
             foreach (var evt in events)
@@ -55,12 +53,15 @@ namespace GreenSwampApp.Controllers
                 {
                     Type = "event",
                     Event = MapToEventViewModel(evt),
-                    CreatedAt = evt.CreatedAt
+                    CreatedAt = evt.Post.CreatedAt
                 });
             }
 
-            // Sort all items by date
-            feedItems = feedItems.OrderByDescending(i => i.CreatedAt).ToList();
+            // Sort all items by date and cap feed size
+            feedItems = feedItems
+                .OrderByDescending(i => i.CreatedAt)
+                .Take(30)
+                .ToList();
 
             // Get trending tags
             var trendingTags = await _context.PostTags
@@ -175,15 +176,21 @@ namespace GreenSwampApp.Controllers
 
         private EventViewModel MapToEventViewModel(Event evt)
         {
+            var post = evt.Post;
+
             return new EventViewModel
             {
                 EventId = evt.EventId,
                 PostId = evt.PostId,
+                CreatedAt = post?.CreatedAt ?? evt.CreatedAt,
+                TimeAgo = GetTimeAgo(post?.CreatedAt ?? evt.CreatedAt),
                 Title = evt.Title,
                 Description = evt.Description,
                 Location = evt.Location,
                 StartTime = evt.StartTime,
                 EndTime = evt.EndTime,
+                MediaUrl = post?.MediaUrl ?? string.Empty,
+                MediaType = post?.MediaType ?? string.Empty,
                 Host = new UserViewModel
                 {
                     UserId = evt.User.UserId,
