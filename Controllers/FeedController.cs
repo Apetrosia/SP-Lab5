@@ -19,13 +19,12 @@ namespace GreenSwampApp.Controllers
         {
             var feedItems = new List<FeedItemViewModel>();
 
-            // Get regular posts with interactions and tags
             var posts = await _context.Posts
                 .Include(p => p.User)
                 .Include(p => p.Interactions)
                 .Include(p => p.PostTags)
                     .ThenInclude(pt => pt.Tag)
-                .Where(p => p.Event == null) // Exclude posts that are events (events have their own display)
+                .Where(p => p.Event == null)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -39,7 +38,6 @@ namespace GreenSwampApp.Controllers
                 });
             }
 
-            // Get events and include their source post because feed sorting should use post.created_at
             var events = await _context.Events
                 .Include(e => e.Post)
                     .ThenInclude(p => p.User)
@@ -57,13 +55,11 @@ namespace GreenSwampApp.Controllers
                 });
             }
 
-            // Sort all items by date and cap feed size
             feedItems = feedItems
                 .OrderByDescending(i => i.CreatedAt)
                 .Take(30)
                 .ToList();
 
-            // Get trending tags
             var trendingTags = await _context.PostTags
                 .Include(pt => pt.Tag)
                 .GroupBy(pt => pt.Tag)
@@ -76,7 +72,6 @@ namespace GreenSwampApp.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            // Get upcoming events
             var upcomingEvents = await _context.Events
                 .Where(e => e.StartTime > DateTime.UtcNow)
                 .OrderBy(e => e.StartTime)
@@ -205,7 +200,6 @@ namespace GreenSwampApp.Controllers
         {
             if (string.IsNullOrEmpty(content)) return content;
 
-            // Replace hashtags with links
             return System.Text.RegularExpressions.Regex.Replace(
                 content,
                 @"#(\w+)",
