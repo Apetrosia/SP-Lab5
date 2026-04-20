@@ -14,13 +14,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=App_Data/greenswamp.db"));
 
-
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Настройки SMTP из appsettings.json
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
 var app = builder.Build();

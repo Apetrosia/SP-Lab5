@@ -92,6 +92,11 @@ public static class SeedData
         var allTags = dbContext.Tags.ToDictionary(t => t.Name, t => t);
         var addedPosts = new List<(Post Post, string[] Tags)>();
 
+        var seededContents = seedItems.Select(item => item.Content).ToList();
+        var seededPosts = dbContext.Posts
+            .Where(p => seededContents.Contains(p.Content))
+            .ToList();
+
         foreach (var item in seedItems)
         {
             if (existingContents.Contains(item.Content))
@@ -114,6 +119,83 @@ public static class SeedData
         }
 
         dbContext.SaveChanges();
+
+        var existingInteractions = dbContext.Interactions
+            .AsNoTracking()
+            .Select(i => new { i.PostId, i.UserId, i.InteractionType })
+            .ToHashSet();
+
+        var interactions = new List<Interaction>();
+        var commentTexts = new[]
+        {
+            "Great post! Love this.",
+            "Very insightful, thanks for sharing!",
+            "This is exactly what I needed to see.",
+            "Amazing perspective on this!",
+            "Couldn't agree more with this.",
+            "Thanks for the valuable insight."
+        };
+        var commentIndex = 0;
+
+        for (int postIdx = 0; postIdx < seededPosts.Count; postIdx++)
+        {
+            var post = seededPosts[postIdx];
+            
+            // Decide comment count: 1 for even indices, 2 for odd
+            var commentCount = postIdx % 2 == 0 ? 1 : 2;
+            
+            // Decide reribb count: cycle through 0, 2, 1, 3, 1, 2
+            var reribbCount = new[] { 0, 2, 1, 3, 1, 2 }[postIdx % 6];
+            
+            // Add comments from alternating users
+            for (int i = 0; i < commentCount; i++)
+            {
+                var commenterUserId = i % 2 == 0 ? 
+                    (post.UserId == frogUser.UserId ? chessUser.UserId : frogUser.UserId) :
+                    (post.UserId == frogUser.UserId ? frogUser.UserId : chessUser.UserId);
+
+                var commentKey = new { PostId = post.PostId, UserId = commenterUserId, InteractionType = "comment" };
+                if (!existingInteractions.Contains(commentKey))
+                {
+                    interactions.Add(new Interaction
+                    {
+                        PostId = post.PostId,
+                        UserId = commenterUserId,
+                        InteractionType = "comment",
+                        CommentContent = commentTexts[commentIndex % commentTexts.Length],
+                        CreatedAt = post.CreatedAt.AddMinutes(5 + i * 2)
+                    });
+                    commentIndex++;
+                }
+            }
+
+            // Add multiple reribbs from different users
+            for (int i = 0; i < reribbCount; i++)
+            {
+                var reribbUserId = i % 2 == 0 ? 
+                    (post.UserId == frogUser.UserId ? chessUser.UserId : frogUser.UserId) :
+                    (post.UserId == frogUser.UserId ? frogUser.UserId : chessUser.UserId);
+
+                var reribbKey = new { PostId = post.PostId, UserId = reribbUserId, InteractionType = "reribb" };
+                if (!existingInteractions.Contains(reribbKey))
+                {
+                    interactions.Add(new Interaction
+                    {
+                        PostId = post.PostId,
+                        UserId = reribbUserId,
+                        InteractionType = "reribb",
+                        CommentContent = string.Empty,
+                        CreatedAt = post.CreatedAt.AddMinutes(10 + i)
+                    });
+                }
+            }
+        }
+
+        if (interactions.Count > 0)
+        {
+            dbContext.Interactions.AddRange(interactions);
+            dbContext.SaveChanges();
+        }
 
         var postTags = new List<PostTag>();
         foreach (var added in addedPosts)

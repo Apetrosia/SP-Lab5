@@ -11,7 +11,7 @@ namespace GreenSwampApp.ViewModels
 
     public class FeedItemViewModel
     {
-        public string Type { get; set; } // "post" or "event"
+        public string Type { get; set; }
         public PostViewModel Post { get; set; }
         public EventViewModel Event { get; set; }
         public DateTime CreatedAt { get; set; }

@@ -35,7 +35,7 @@ namespace Greenswamp.Controllers
             }
 
             var posts = user.Posts
-                .Where(p => p.Event == null) // Exclude event creation posts
+                .Where(p => p.Event == null)
                 .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new PostViewModel
                 {
