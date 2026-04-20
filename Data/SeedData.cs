@@ -84,23 +84,79 @@ public static class SeedData
             )
         };
 
-        var existingContents = dbContext.Posts
-            .AsNoTracking()
-            .Select(p => p.Content)
-            .ToHashSet();
+        var eventSeedItems = new List<(
+            string PostContent,
+            long UserId,
+            DateTime PostCreatedAt,
+            string MediaType,
+            string MediaUrl,
+            string[] Tags,
+            string Title,
+            string Description,
+            string Location,
+            DateTime StartTime,
+            DateTime? EndTime)>
+        {
+            (
+                "Swamp Night Watch this Friday. Bring flashlights and rubber boots. #frogs #swamp",
+                frogUser.UserId,
+                DateTime.UtcNow.AddMinutes(-41),
+                "image",
+                "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=1200&q=80",
+                ["frogs", "swamp"],
+                "Swamp Night Watch",
+                "Guided evening walk to observe tree frogs and record calls.",
+                "North Marsh Boardwalk",
+                DateTime.UtcNow.AddDays(2).AddHours(1),
+                DateTime.UtcNow.AddDays(2).AddHours(3)
+            ),
+            (
+                "Open tactics meetup: solve puzzles and review candidate moves. #chess #tactics",
+                chessUser.UserId,
+                DateTime.UtcNow.AddMinutes(-17),
+                "none",
+                string.Empty,
+                ["chess", "tactics"],
+                "Tactics Sprint Meetup",
+                "45-minute tactics sprint plus short analysis of key positions.",
+                "Community Pond Cafe",
+                DateTime.UtcNow.AddDays(1).AddHours(4),
+                DateTime.UtcNow.AddDays(1).AddHours(5)
+            ),
+            (
+                "Weekend pond cleanup and frog habitat check-in. Everyone is welcome. #swamp",
+                frogUser.UserId,
+                DateTime.UtcNow.AddMinutes(-9),
+                "none",
+                string.Empty,
+                ["swamp"],
+                "Pond Cleanup Day",
+                "Volunteer cleanup, habitat notes, and a short safety briefing.",
+                "East Pond Pier",
+                DateTime.UtcNow.AddDays(4).AddHours(2),
+                DateTime.UtcNow.AddDays(4).AddHours(6)
+            )
+        };
 
         var allTags = dbContext.Tags.ToDictionary(t => t.Name, t => t);
         var addedPosts = new List<(Post Post, string[] Tags)>();
 
-        var seededContents = seedItems.Select(item => item.Content).ToList();
-        var seededPosts = dbContext.Posts
-            .Where(p => seededContents.Contains(p.Content))
+        var seededContents = seedItems.Select(item => item.Content)
+            .Concat(eventSeedItems.Select(item => item.PostContent))
             .ToList();
+        var existingSeededPosts = dbContext.Posts
+            .Where(p => seededContents.Contains(p.Content))
+            .ToDictionary(p => p.Content, p => p);
 
         foreach (var item in seedItems)
         {
-            if (existingContents.Contains(item.Content))
+            if (existingSeededPosts.TryGetValue(item.Content, out var existingPost))
             {
+                existingPost.UserId = item.UserId;
+                existingPost.MediaUrl = item.MediaUrl;
+                existingPost.MediaType = item.MediaType;
+                existingPost.CreatedAt = item.CreatedAt;
+                existingPost.UpdatedAt = item.CreatedAt;
                 continue;
             }
 
@@ -116,6 +172,80 @@ public static class SeedData
 
             dbContext.Posts.Add(post);
             addedPosts.Add((post, item.Tags));
+            existingSeededPosts[item.Content] = post;
+        }
+
+        foreach (var eventItem in eventSeedItems)
+        {
+            if (existingSeededPosts.TryGetValue(eventItem.PostContent, out var existingEventPost))
+            {
+                existingEventPost.UserId = eventItem.UserId;
+                existingEventPost.MediaUrl = eventItem.MediaUrl;
+                existingEventPost.MediaType = eventItem.MediaType;
+                existingEventPost.CreatedAt = eventItem.PostCreatedAt;
+                existingEventPost.UpdatedAt = eventItem.PostCreatedAt;
+                continue;
+            }
+
+            var eventPost = new Post
+            {
+                UserId = eventItem.UserId,
+                Content = eventItem.PostContent,
+                MediaUrl = eventItem.MediaUrl,
+                MediaType = eventItem.MediaType,
+                CreatedAt = eventItem.PostCreatedAt,
+                UpdatedAt = eventItem.PostCreatedAt
+            };
+
+            dbContext.Posts.Add(eventPost);
+            addedPosts.Add((eventPost, eventItem.Tags));
+            existingSeededPosts[eventItem.PostContent] = eventPost;
+        }
+
+        dbContext.SaveChanges();
+
+        var seededPosts = dbContext.Posts
+            .Where(p => seededContents.Contains(p.Content))
+            .ToList();
+
+        var eventPostContents = eventSeedItems.Select(item => item.PostContent).ToList();
+        var eventPostsByContent = dbContext.Posts
+            .Where(p => eventPostContents.Contains(p.Content))
+            .ToDictionary(p => p.Content, p => p);
+
+        var existingEventsByPostId = dbContext.Events
+            .ToDictionary(e => e.PostId, e => e);
+
+        foreach (var eventItem in eventSeedItems)
+        {
+            if (!eventPostsByContent.TryGetValue(eventItem.PostContent, out var eventPost))
+            {
+                continue;
+            }
+
+            if (existingEventsByPostId.TryGetValue(eventPost.PostId, out var existingEvent))
+            {
+                existingEvent.UserId = eventItem.UserId;
+                existingEvent.Title = eventItem.Title;
+                existingEvent.Description = eventItem.Description;
+                existingEvent.Location = eventItem.Location;
+                existingEvent.StartTime = eventItem.StartTime;
+                existingEvent.EndTime = eventItem.EndTime;
+                existingEvent.CreatedAt = eventItem.PostCreatedAt;
+                continue;
+            }
+
+            dbContext.Events.Add(new Event
+            {
+                PostId = eventPost.PostId,
+                UserId = eventItem.UserId,
+                Title = eventItem.Title,
+                Description = eventItem.Description,
+                Location = eventItem.Location,
+                StartTime = eventItem.StartTime,
+                EndTime = eventItem.EndTime,
+                CreatedAt = eventItem.PostCreatedAt
+            });
         }
 
         dbContext.SaveChanges();

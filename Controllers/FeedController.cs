@@ -24,7 +24,6 @@ namespace GreenSwampApp.Controllers
                 .Include(p => p.Interactions)
                 .Include(p => p.PostTags)
                     .ThenInclude(pt => pt.Tag)
-                .Where(p => p.Event == null)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -57,6 +56,7 @@ namespace GreenSwampApp.Controllers
 
             feedItems = feedItems
                 .OrderByDescending(i => i.CreatedAt)
+                .ThenBy(i => i.Type == "event" ? 1 : 0)
                 .Take(30)
                 .ToList();
 
